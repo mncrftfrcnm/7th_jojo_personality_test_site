@@ -2,6 +2,8 @@
 a website to create an authentic-looking survey from 7th jojo game
 
 
+here's the link to take the test: https://mncrftfrcnm.github.io/7th_jojo_personality_test_site
+
 I do not own the 7th jojo game, and do not have anything to do with the jojo franchise. This is just a fan-project of a fan-project.
 
 
