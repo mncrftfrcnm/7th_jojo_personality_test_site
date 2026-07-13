@@ -1,8 +1,4 @@
-#!/usr/bin/env python3
-"""Create standalone Game Boy-style personality surveys."""
-
-from __future__ import annotations
-
+# a py script to create your own surveys like that!
 import argparse
 import html
 import json
