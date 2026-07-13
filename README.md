@@ -16,7 +16,7 @@ The original **JoJo's Bizarre Adventure: The 7th Stand User** can be downloaded 
 
 [Download The 7th Stand User](https://7thjojo.fandom.com/wiki/FAQ#Download_links)
 
-Disclaimer
+### Disclaimer
 
 I do not own The 7th Stand User, JoJo's Bizarre Adventure, or any related characters, names, artwork, music, or intellectual property.
 
