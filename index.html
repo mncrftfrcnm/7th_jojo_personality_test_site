@@ -48,8 +48,58 @@ function reset(){mode='title';cursor=0;step=0;answers=[];scores=blank();karma=0;
 function choose(){if(mode==='title')return start();if(mode==='open'){let item=data.open[step];answers.push(item.o[cursor]);if(step===0){step=1;cursor=0;return render()}trait=data.route[answers[1]][answers[0]];let n=Math.floor(Math.random()*3)+1;scores[trait]=n;question=data.traits[trait].q[n-1];mode='q';cursor=0;return render()}if(mode==='q'){let pick=cursor===0?'Yes':'No',r=question.a[pick];karma+=r.k;scores[r.t]++;trait=r.t;count++;if(scores[trait]>=5)return result(trait);question=data.traits[trait].q[scores[trait]-1];cursor=0;beep(r.k?880:660,.05);render()}else if(mode==='result')start()}
 function sub(main){let n={A:['B','I'],B:['A','C'],C:['B','D'],D:['C','E'],E:['D','F'],F:['E','G'],G:['F','H'],H:['G','I'],I:['H','A']}[main],[l,r]=n;if(scores[l]>scores[r])return l;if(scores[r]>scores[l])return r;if(main==='I')return'A';if(main==='A')return'I';return String.fromCharCode(main.charCodeAt(0)+1)}
 async function result(main){mode='result';let st=sub(main),[name,slug]=data.stands[main+':'+st],url='https://7thjojo.fandom.com/wiki/'+slug;status.textContent='COMPLETE';hint.textContent='A/START: RETAKE';page.innerHTML=`<div><p class="eyebrow">Evaluation complete</p><h2>Your Stand is</h2><div class="name">${name}</div><p class="small">${main} · ${data.traits[main].n}<br>Sub-trait ${st} · Karma ${karma}</p><div class="stats">${Object.entries(scores).map(([k,v])=>`<span>${k}:${v}</span>`).join('')}</div><div class="media"><img id="img" alt="${name}" hidden><p class="desc" id="desc">Loading Stand data...</p></div><a class="link" href="${url}" target="_blank">Open Stand Page</a></div>`;beep(440,.08);setTimeout(()=>beep(660,.08),90);setTimeout(()=>beep(880,.14),180);load(slug,name)}
-async function load(slug,name){let title=decodeURIComponent(slug.replaceAll('_',' ')),p=new URLSearchParams({action:'query',prop:'extracts|pageimages',exintro:'1',explaintext:'1',piprop:'original|thumbnail',pithumbsize:'400',redirects:'1',titles:title,format:'json',origin:'*'});try{let r=await fetch('https://7thjojo.fandom.com/api.php?'+p),j=await r.json(),x=Object.values(j.query.pages)[0],d=x.extract||'',u=x.original?.source||x.thumbnail?.source||'';document.querySelector('#desc').textContent=d;if(u){let i=document.querySelector('#img');i.src=u;i.hidden=false}}catch(e){document.querySelector('#desc').textContent=name+'. Open the Stand page for full details.'}}
-function move(n){let c=mode==='open'?data.open[step].o.length:mode==='q'?2:1;if(c<2)return;cursor=(cursor+n+c)%c;beep(330,.02);render()}function btn(t,i){return `<button class="choice${i===cursor?' sel':''}" data-choice="${i}">${t}</button>`}function wire(){document.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{cursor=+b.dataset.choice;choose()})}
+async function load(slug, name) {
+  const title = decodeURIComponent(slug.replaceAll("_", " "));
+
+  const params = new URLSearchParams({
+    action: "query",
+    prop: "extracts|pageimages",
+    exintro: "1",
+    explaintext: "1",
+    piprop: "name",
+    redirects: "1",
+    titles: title,
+    format: "json",
+    origin: "*"
+  });
+
+  try {
+    const response = await fetch(
+      "https://7thjojo.fandom.com/api.php?" + params
+    );
+
+    if (!response.ok) {
+      throw new Error("Stand data request failed");
+    }
+
+    const json = await response.json();
+    const standPage = Object.values(json.query.pages)[0];
+
+    const description = standPage.extract || "";
+    const descriptionElement = document.querySelector("#desc");
+
+    descriptionElement.textContent =
+      description || name + ". Open the Stand page for full details.";
+
+    if (standPage.pageimage) {
+      const imageElement = document.querySelector("#img");
+
+      imageElement.src =
+        "https://7thjojo.fandom.com/wiki/Special:Redirect/file/" +
+        encodeURIComponent(standPage.pageimage) +
+        "?width=400";
+
+      imageElement.hidden = false;
+
+      imageElement.onerror = () => {
+        imageElement.hidden = true;
+      };
+    }
+  } catch (error) {
+    document.querySelector("#desc").textContent =
+      name + ". Open the Stand page for full details.";
+  }
+}function move(n){let c=mode==='open'?data.open[step].o.length:mode==='q'?2:1;if(c<2)return;cursor=(cursor+n+c)%c;beep(330,.02);render()}function btn(t,i){return `<button class="choice${i===cursor?' sel':''}" data-choice="${i}">${t}</button>`}function wire(){document.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{cursor=+b.dataset.choice;choose()})}
 function render(){if(mode==='title'){status.textContent='READY';hint.textContent='PRESS START · ENTER · Z';page.innerHTML=`<div><p class="eyebrow">7th Stand User</p><h1>Stand<br>Evaluation</h1><p class="small">Answer honestly. One personality trait will reach level 5 and reveal your Stand.</p>${btn('START',0)}</div>`;return wire()}if(mode==='open'){let x=data.open[step];status.textContent=`INTRO ${step+1}/2`;page.innerHTML=`<div><p class="eyebrow">Opening question ${step+1}</p><h2>${x.q}</h2><div class="menu">${x.o.map(btn).join('')}</div></div>`;return wire()}if(mode==='q'){status.textContent=`${trait}:${scores[trait]}/5 K:${karma}`;page.innerHTML=`<div><p class="eyebrow">${trait} · ${data.traits[trait].n} · Level ${scores[trait]}</p><h2>${question.t}</h2><div class="menu">${btn('YES',0)}${btn('NO',1)}</div></div>`;wire()}}
 function beep(f,d){if(!sound)return;let A=window.AudioContext||window.webkitAudioContext;if(!A)return;let a=beep.a||(beep.a=new A),o=a.createOscillator(),g=a.createGain(),n=a.currentTime;o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.035,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(a.destination);o.start(n);o.stop(n+d)}
 document.onkeydown=e=>{let k=e.key.toLowerCase();if(['arrowup','arrowleft'].includes(k)){e.preventDefault();move(-1)}if(['arrowdown','arrowright'].includes(k)){e.preventDefault();move(1)}if(['enter',' ','z'].includes(k)){e.preventDefault();choose()}if(k==='x'||k==='m')sound=!sound;if(k==='r')reset()};document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>move(+b.dataset.move));document.querySelector('#a').onclick=choose;document.querySelector('#b').onclick=()=>sound=!sound;document.querySelector('#start').onclick=choose;document.querySelector('#reset').onclick=reset;render();
